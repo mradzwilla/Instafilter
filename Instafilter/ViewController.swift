@@ -31,7 +31,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     @IBAction func save(_ sender: UIButton) {
-        UIImageWriteToSavedPhotosAlbum(imageView.image!, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+
+        if let currentImageDisplayed = imageView.image {
+            UIImageWriteToSavedPhotosAlbum(currentImageDisplayed, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+        } else {
+            let ac = UIAlertController(title: "Save error", message: "Please select a picture before saving!", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
+        }
     }
     @IBAction func intensityChanged(_ sender: Any) {
         applyProcessing()
@@ -77,9 +84,11 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         if inputKeys.contains(kCIInputScaleKey) { currentFilter.setValue(intensity.value * 10, forKey: kCIInputScaleKey) }
         if inputKeys.contains(kCIInputCenterKey) { currentFilter.setValue(CIVector(x: currentImage.size.width / 2, y: currentImage.size.height / 2), forKey: kCIInputCenterKey) }
         
-        if let cgimg = context.createCGImage(currentFilter.outputImage!, from: currentFilter.outputImage!.extent) {
-            let processedImage = UIImage(cgImage: cgimg)
-            self.imageView.image = processedImage
+        if let currentFilterImage = currentFilter.outputImage{
+            if let cgimg = context.createCGImage(currentFilterImage, from: currentFilter.outputImage!.extent) {
+                let processedImage = UIImage(cgImage: cgimg)
+                self.imageView.image = processedImage
+            }
         }
     }
     
